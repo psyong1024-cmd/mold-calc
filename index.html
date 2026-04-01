@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공동구 뚜껑 단가 계산기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;color:#1a1a1a;background:#f0ede8;min-height:100vh;padding:16px 12px 40px}
+.container{max-width:480px;margin:0 auto}
+h1{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+.subtitle{font-size:12px;color:#aaa;margin-bottom:12px}
+.card{background:#fff;border:1px solid #e5e2dc;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.sec-header{display:flex;align-items:center;margin-bottom:10px}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:10px;font-weight:700;margin-right:6px;flex-shrink:0}
+.sec-title{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.04em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:3px}
+label{font-size:11px;color:#888;font-weight:500}
+input[type=text]{height:36px;border:1px solid #ddd;border-radius:7px;padding:0 9px;font-size:14px;color:#1a1a1a;background:#fff;width:100%;transition:border-color .15s}
+input[type=text]:focus{outline:none;border-color:#378ADD}
+input.auto{background:#EBF4FF;color:#0C447C;border-color:#B5D4F4;font-weight:700}
+input.gray{background:#f5f4f0;color:#aaa;border-color:#e8e6e0}
+.hint{font-size:10px;color:#bbb;margin-top:1px}
+.hint.blue{color:#378ADD;font-weight:500}
+.hint.orange{color:#BA7517;font-weight:500}
+.hint.red{color:#A32D2D;font-weight:500}
+.toggle-row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.toggle-row input[type=checkbox]{width:15px;height:15px;accent-color:#1a1a1a;cursor:pointer}
+.toggle-row span{font-size:12px;font-weight:600;color:#1a1a1a}
+.btn-calc{width:100%;height:44px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-calc:active{opacity:0.75}
+.result-card{background:#fff;border:1px solid #e5e2dc;border-radius:10px;padding:14px;margin-top:8px;display:none}
+.result-title{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0ede8;font-size:13px}
+.row:last-of-type{border-bottom:none}
+.row .lbl{color:#888}
+.row .val{font-weight:600;color:#1a1a1a}
+.divider{border:none;border-top:1px solid #e8e6e0;margin:8px 0}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0 2px;font-size:16px;font-weight:700}
+.final-box{border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.final-box.tier-high{background:#EAF3DE}
+.final-box.tier-high .lbl{font-size:12px;color:#3B6D11}
+.final-box.tier-high .val{font-size:20px;font-weight:700;color:#27500A}
+.final-box.tier-high .sub{font-size:11px;color:#639922}
+.final-box.tier-mid{background:#EBF4FF}
+.final-box.tier-mid .lbl{font-size:12px;color:#185FA5}
+.final-box.tier-mid .val{font-size:20px;font-weight:700;color:#0C447C}
+.final-box.tier-mid .sub{font-size:11px;color:#378ADD}
+.final-box.tier-low{background:#FFF8E8}
+.final-box.tier-low .lbl{font-size:12px;color:#854F0B}
+.final-box.tier-low .val{font-size:20px;font-weight:700;color:#633806}
+.final-box.tier-low .sub{font-size:11px;color:#BA7517}
+.tier-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:5px}
+.tier-badge.high{background:#EAF3DE;color:#3B6D11}
+.tier-badge.mid{background:#EBF4FF;color:#185FA5}
+.tier-badge.low{background:#FFF8E8;color:#854F0B;border:1px solid #FAC775}
+.warn-box{background:#FFF8E8;border-radius:7px;padding:7px 10px;font-size:11px;color:#854F0B;margin-top:8px;border:1px solid #FAC775}
+.err-box{background:#FCEBEB;border-radius:7px;padding:7px 10px;font-size:11px;color:#791F1F;margin-top:8px;border:1px solid #F7C1C1}
+.price-ref-wrap{font-size:11px;color:#666;background:#f5f4f0;border-radius:7px;padding:7px 9px;line-height:1}
+.price-ref-wrap table{width:100%;border-collapse:collapse;font-size:10px}
+.price-ref-wrap th{color:#999;font-weight:600;padding:3px 4px;text-align:center;border-bottom:1px solid #e0ddd8}
+.price-ref-wrap td{padding:3px 4px;text-align:center;color:#555}
+.price-ref-wrap tr.active-row td{background:#EBF4FF;color:#0C447C;font-weight:700;border-radius:3px}
+.price-ref-wrap .col-cy{text-align:left;color:#888}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>공동구 뚜껑 단가 계산기</h1>
+  <p class="subtitle">치수 입력 → 싸이클 자동계산 → 수량별 단가 자동결정 → 최종 견적</p>
+  <div class="card">
+    <div class="sec-header"><span class="step-badge">1</span><div class="sec-title">몰드 · 제품 치수</div></div>
+    <div class="grid2" style="margin-bottom:8px">
+      <div class="field"><label>몰드 가로 (mm)</label><input type="text" id="mW" value="1,000" oninput="fmtInput(this);autoCalc()"></div>
+      <div class="field"><label>몰드 세로 (mm)</label><input type="text" id="mH" value="1,300" oninput="fmtInput(this);autoCalc()"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:8px">
+      <div class="field"><label>제품 가로 (mm)</label><input type="text" id="pW" value="730" oninput="fmtInput(this);autoCalc()"></div>
+      <div class="field"><label>제품 세로 (mm)</label><input type="text" id="pH" value="250" oninput="fmtInput(this);autoCalc()"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>살두께 (mm)</label><input type="text" id="gap" value="20" oninput="fmtInput(this);autoCalc()"></div>
+      <div class="field"><label>외곽 마진 (mm)</label><input type="text" id="margin" value="0" oninput="fmtInput(this);autoCalc()"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-header"><span class="step-badge">2</span><div class="sec-title">1싸이클 장수 (자동)</div></div>
+    <div class="grid2">
+      <div class="field">
+        <label>최적 배치 장수</label>
+        <input type="text" id="cycleQty" class="auto" readonly>
+        <div class="hint blue" id="cycleDir">치수 입력 시 자동계산</div>
+      </div>
+      <div class="field">
+        <label>대안 배치 장수</label>
+        <input type="text" id="cycleAlt" class="gray" readonly>
+        <div class="hint" id="cycleAltDir">대안 방향</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-header"><span class="step-badge">3</span><div class="sec-title">발주 수량</div></div>
+    <div class="grid2">
+      <div class="field">
+        <label>발주 수량 (장)</label>
+        <input type="text" id="orderQty" value="1,500" oninput="fmtInput(this);autoCalc()">
+      </div>
+      <div class="field">
+        <label>필요 싸이클 수 (자동)</label>
+        <input type="text" id="needCycles" class="auto" readonly>
+        <div class="hint blue">수량 ÷ 싸이클 장수</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-header"><span class="step-badge">4</span><div class="sec-title">제품 단가 (수량 기준 자동결정)</div></div>
+    <div class="grid2">
+      <div class="field">
+        <label>적용 단가 (원/장)</label>
+        <input type="text" id="unitPrice" class="auto" readonly>
+        <div class="hint blue" id="priceHint">수량 + 장수 기준 자동결정</div>
+      </div>
+      <div class="field">
+        <label>단가 기준표</label>
+        <div class="price-ref-wrap">
+          <table id="priceRef">
+            <tr><th class="col-cy">구간</th><th>3장</th><th>4장</th><th>5장</th><th>6장</th><th>8장</th></tr>
+            <tr id="row-high"><td class="col-cy">15,000↑</td><td>8,000</td><td>6,500</td><td>5,500</td><td>5,000</td><td>4,000</td></tr>
+            <tr id="row-mid"><td class="col-cy">15,000↓</td><td>9,000</td><td>7,500</td><td>6,500</td><td>6,000</td><td>5,000</td></tr>
+            <tr id="row-low"><td class="col-cy">소량</td><td>18,000</td><td>15,000</td><td>13,000</td><td>12,000</td><td>10,000</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <div class="field">
+        <label>소량 기준 수량 (장) — 기본값: 1,000</label>
+        <input type="text" id="smallQty" value="1,000" oninput="fmtInput(this);autoCalc()">
+        <div class="hint">이 수량 미만이면 소량 단가 적용</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-header"><span class="step-badge">5</span><div class="sec-title">몰드 비용</div></div>
+    <div class="toggle-row">
+      <input type="checkbox" id="moldYn" checked onchange="autoCalc()">
+      <span>몰드 비용 포함</span>
+    </div>
+    <div id="moldSection" class="grid2">
+      <div class="field">
+        <label>총 몰드 비용 (원)</label>
+        <input type="text" id="moldTotal" value="15,000,000" oninput="fmtInput(this);autoCalc()">
+      </div>
+      <div class="field">
+        <label>1장당 배분액 (자동)</label>
+        <input type="text" id="moldPerPiece" class="auto" readonly>
+        <div class="hint blue">몰드비용 ÷ 발주수량</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn-calc" onclick="showResult()">최종 견적 확인</button>
+  <div class="result-card" id="resultCard">
+    <div class="result-title">최종 단가 산출</div>
+    <div class="final-box tier-mid" id="finalBox">
+      <div>
+        <div class="lbl">1장당 최종 단가 <span class="tier-badge mid" id="tierBadge"></span></div>
+        <div class="sub" id="r_finalSub">원/장</div>
+      </div>
+      <div class="val" id="r_finalUnit">—</div>
+    </div>
+    <div class="row"><span class="lbl">1싸이클 장수</span><span class="val" id="r_best">—</span></div>
+    <div class="row"><span class="lbl">적용 단가 구간</span><span class="val" id="r_tier">—</span></div>
+    <div class="row"><span class="lbl">제품 단가</span><span class="val" id="r_unit">—</span></div>
+    <div class="row" id="moldPerRow"><span class="lbl">몰드 배분액</span><span class="val" id="r_moldPer">—</span></div>
+    <div class="row"><span class="lbl">발주 수량</span><span class="val" id="r_qty">—</span></div>
+    <div class="row"><span class="lbl">필요 싸이클 수</span><span class="val" id="r_cycles">—</span></div>
+    <div class="divider"></div>
+    <div class="row"><span class="lbl">제품 단가 소계</span><span class="val" id="r_prodTotal">—</span></div>
+    <div class="row" id="moldCostRow"><span class="lbl">몰드 비용</span><span class="val" id="r_moldCost">—</span></div>
+    <div class="divider"></div>
+    <div class="total-row"><span>총 금액</span><span id="r_grand">—</span></div>
+    <div class="warn-box" id="warnBox" style="display:none"></div>
+    <div class="err-box" id="errBox" style="display:none"></div>
+  </div>
+</div>
+<script>
+const PT={3:[8000,9000,18000],4:[6500,7500,15000],5:[5500,6500,13000],6:[5000,6000,12000],8:[4000,5000,10000]};
+const CY_ORDER=[3,4,5,6,8];
+function fmtInput(el){const raw=el.value.replace(/,/g,'');if(raw===''||isNaN(raw))return;const n=parseInt(raw,10);const pos=el.selectionStart;const oldLen=el.value.length;el.value=n.toLocaleString('ko-KR');const newLen=el.value.length;try{el.selectionStart=el.selectionEnd=pos+(newLen-oldLen);}catch(e){}}
+function getVal(id){return parseFloat((document.getElementById(id).value||'').replace(/,/g,''))||0;}
+function c(n){return Math.round(n).toLocaleString('ko-KR');}
+function fmt(n){return c(n)+'원';}
+function getCyKey(best){let key=null;for(let i=0;i<CY_ORDER.length;i++){if(best>=CY_ORDER[i])key=CY_ORDER[i];}return key;}
+function getTier(qty,smallQty){if(qty<smallQty)return 'low';if(qty<15000)return 'mid';return 'high';}
+function getPrice(best,qty,smallQty){const key=getCyKey(best);if(!key)return null;const tier=getTier(qty,smallQty);const idx=tier==='high'?0:tier==='mid'?1:2;return{price:PT[key][idx],tier,key};}
+function calcLayout(){const mW=getVal('mW'),mH=getVal('mH'),pW=getVal('pW'),pH=getVal('pH');const gap=getVal('gap'),mg=getVal('margin');if(!mW||!mH||!pW||!pH)return null;const eW=mW-mg*2,eH=mH-mg*2;const aC=Math.floor(eW/(pW+gap)),aR=Math.floor(eH/(pH+gap)),cA=aC*aR;const bC=Math.floor(eW/(pH+gap)),bR=Math.floor(eH/(pW+gap)),cB=bC*bR;const bestA=cA>=cB;return{cA,cB,bestA,best:Math.max(cA,cB),alt:Math.min(cA,cB),aC,aR,bC,bR};}
+function highlightPriceRef(best,tier){['row-high','row-mid','row-low'].forEach(id=>{document.getElementById(id).classList.remove('active-row');});document.getElementById(tier==='high'?'row-high':tier==='mid'?'row-mid':'row-low').classList.add('active-row');}
+function autoCalc(){const moldOn=document.getElementById('moldYn').checked;document.getElementById('moldSection').style.display=moldOn?'':'none';const L=calcLayout();if(!L)return;document.getElementById('cycleQty').value=L.best?c(L.best):'';document.getElementById('cycleDir').textContent=L.bestA?'정방향 ('+L.aC+'열×'+L.aR+'행)':'90도 회전 ('+L.bC+'열×'+L.bR+'행)';document.getElementById('cycleAlt').value=L.alt?c(L.alt):'';document.getElementById('cycleAltDir').textContent=L.bestA?'90도 회전 ('+L.bC+'열×'+L.bR+'행)':'정방향 ('+L.aC+'열×'+L.aR+'행)';const qty=getVal('orderQty');const smallQty=getVal('smallQty')||1000;const entry=getPrice(L.best,qty,smallQty);document.getElementById('needCycles').value=L.best&&qty?c(Math.ceil(qty/L.best)):'';if(entry){document.getElementById('unitPrice').value=c(entry.price);const tl=entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량';document.getElementById('priceHint').textContent=L.best+'장 / '+tl+' → '+c(entry.price)+'원/장';document.getElementById('priceHint').className='hint '+(entry.tier==='high'?'blue':entry.tier==='mid'?'orange':'red');highlightPriceRef(L.best,entry.tier);}else{document.getElementById('unitPrice').value='';document.getElementById('priceHint').textContent='해당 장수 단가 기준 없음';}const mTotal=moldOn?getVal('moldTotal'):0;document.getElementById('moldPerPiece').value=qty?c(Math.round(mTotal/qty)):'';}
+function showResult(){const L=calcLayout();if(!L){alert('치수를 모두 입력해주세요.');return;}const qty=getVal('orderQty');const smallQty=getVal('smallQty')||1000;const moldOn=document.getElementById('moldYn').checked;const mTotal=moldOn?getVal('moldTotal'):0;const entry=getPrice(L.best,qty,smallQty);const uP=entry?entry.price:0;const cycles=L.best&&qty?Math.ceil(qty/L.best):0;const moldPer=moldOn&&qty?Math.round(mTotal/qty):0;const finalU=uP+moldPer;const prodT=uP*qty;const grand=prodT+mTotal;const tierLabel=entry?(entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량'):'—';const tierClass=entry?entry.tier:'mid';document.getElementById('finalBox').className='final-box tier-'+tierClass;document.getElementById('tierBadge').className='tier-badge '+tierClass;document.getElementById('tierBadge').textContent=tierLabel;document.getElementById('r_finalUnit').textContent=c(finalU);document.getElementById('r_finalSub').textContent=moldOn?'원/장 (몰드 포함)':'원/장';document.getElementById('r_best').textContent=c(L.best)+'장 ('+(L.bestA?'정방향':'90도 회전')+')';document.getElementById('r_tier').textContent=tierLabel;document.getElementById('r_unit').textContent=c(uP)+'원/장';document.getElementById('r_moldPer').textContent=c(moldPer)+'원/장';document.getElementById('r_qty').textContent=c(qty)+'장';document.getElementById('r_cycles').textContent=c(cycles)+'싸이클';document.getElementById('r_prodTotal').textContent=fmt(prodT);document.getElementById('r_moldCost').textContent=fmt(mTotal);document.getElementById('r_grand').textContent=fmt(grand);document.getElementById('moldPerRow').style.display=moldOn?'':'none';document.getElementById('moldCostRow').style.display=moldOn?'':'none';const err=document.getElementById('errBox'),warn=document.getElementById('warnBox');if(L.best===0){err.style.display='block';err.textContent='현재 치수로는 제품이 몰드에 들어가지 않습니다. 치수를 확인하세요.';warn.style.display='none';}else{err.style.display='none';if(entry&&entry.tier==='low'){warn.style.display='block';warn.textContent='소량 생산 단가 적용 ('+c(qty)+'장). 별도 협의가 필요할 수 있습니다.';}else{warn.style.display='none';}}document.getElementById('resultCard').style.display='block';document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});}
+autoCalc();
+</script>
+</body>
+</html>
