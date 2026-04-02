@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;color:#1a1a1a;background:#f0ede8;min-height:100vh;padding:16px 12px 40px}
 .container{max-width:480px;margin:0 auto}
-h1{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+h1{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:12px}
 .card{background:#fff;border:1px solid #e5e2dc;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .sec-header{display:flex;align-items:center;margin-bottom:10px}
 .step-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:10px;font-weight:700;margin-right:6px;flex-shrink:0}
@@ -16,8 +16,8 @@ h1{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .field{display:flex;flex-direction:column;gap:3px}
 label{font-size:11px;color:#888;font-weight:500}
-input[type=text]{height:36px;border:1px solid #ddd;border-radius:7px;padding:0 9px;font-size:14px;color:#1a1a1a;background:#fff;width:100%;transition:border-color .15s}
-input[type=text]:focus{outline:none;border-color:#378ADD}
+input[type=text]{height:36px;border:1px solid #ddd;border-radius:7px;padding:0 9px;font-size:14px;color:#1a1a1a;background:#FFFBEA;width:100%;transition:border-color .15s}
+input[type=text]:focus{outline:none;border-color:#EF9F27}
 input.auto{background:#EBF4FF;color:#0C447C;border-color:#B5D4F4;font-weight:700}
 input.gray{background:#f5f4f0;color:#aaa;border-color:#e8e6e0}
 .hint{font-size:10px;color:#bbb;margin-top:1px}
@@ -155,17 +155,67 @@ input.gray{background:#f5f4f0;color:#aaa;border-color:#e8e6e0}
 <script>
 const PT={3:[8000,9000,18000],4:[6500,7500,15000],5:[5500,6500,13000],6:[5000,6000,12000],8:[4000,5000,10000]};
 const CY_ORDER=[3,4,5,6,8];
+let _cache={L:null,qty:0,entry:null,moldOn:false,mTotal:0};
 function fmtInput(el){const raw=el.value.replace(/,/g,'');if(raw===''||isNaN(raw))return;const n=parseInt(raw,10);const pos=el.selectionStart;const oldLen=el.value.length;el.value=n.toLocaleString('ko-KR');const newLen=el.value.length;try{el.selectionStart=el.selectionEnd=pos+(newLen-oldLen);}catch(e){}}
 function getVal(id){return parseFloat((document.getElementById(id).value||'').replace(/,/g,''))||0;}
 function c(n){return Math.round(n).toLocaleString('ko-KR');}
 function fmt(n){return c(n)+'원';}
 function getCyKey(best){let key=null;for(let i=0;i<CY_ORDER.length;i++){if(best>=CY_ORDER[i])key=CY_ORDER[i];}return key;}
-function getTier(qty,smallQty){if(qty<smallQty)return 'low';if(qty<15000)return 'mid';return 'high';}
-function getPrice(best,qty,smallQty){const key=getCyKey(best);if(!key)return null;const tier=getTier(qty,smallQty);const idx=tier==='high'?0:tier==='mid'?1:2;return{price:PT[key][idx],tier,key};}
+function getTier(qty){if(qty<1000)return 'low';if(qty<15000)return 'mid';return 'high';}
+function getPrice(best,qty){const key=getCyKey(best);if(!key)return null;const tier=getTier(qty);const idx=tier==='high'?0:tier==='mid'?1:2;return{price:PT[key][idx],tier,key};}
 function fitCount(space,size,gap){if(size<=0)return 0;return Math.max(0,Math.floor((space+gap)/(size+gap)));}
-function calcLayout(){const mW=getVal('mW'),mH=getVal('mH'),pW=getVal('pW'),pH=getVal('pH');const gap=20,mg=0;if(!mW||!mH||!pW||!pH)return null;const eW=mW-mg*2,eH=mH-mg*2;const aC=fitCount(eW,pW,gap),aR=fitCount(eH,pH,gap),cA=aC*aR;const bC=fitCount(eW,pH,gap),bR=fitCount(eH,pW,gap),cB=bC*bR;const bestA=cA>=cB;return{cA,cB,bestA,best:Math.max(cA,cB),alt:Math.min(cA,cB),aC,aR,bC,bR};}
-function autoCalc(){const moldOn=document.getElementById('moldYn').checked;document.getElementById('moldSection').style.display=moldOn?'':'none';const L=calcLayout();if(!L)return;document.getElementById('cycleQty').value=L.best?c(L.best):'';document.getElementById('cycleDir').textContent=L.bestA?'정방향 ('+L.aC+'열×'+L.aR+'행)':'90도 회전 ('+L.bC+'열×'+L.bR+'행)';document.getElementById('cycleAlt').value=L.alt?c(L.alt):'';document.getElementById('cycleAltDir').textContent=L.bestA?'90도 회전 ('+L.bC+'열×'+L.bR+'행)':'정방향 ('+L.aC+'열×'+L.aR+'행)';const qty=getVal('orderQty');const smallQty=1000;const entry=getPrice(L.best,qty,smallQty);document.getElementById('needCycles').value=L.best&&qty?c(Math.ceil(qty/L.best)):'';if(entry){document.getElementById('unitPrice').value=c(entry.price);const tl=entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량';document.getElementById('priceHint').textContent=L.best+'장 / '+tl+' → '+c(entry.price)+'원/장';document.getElementById('priceHint').className='hint '+(entry.tier==='high'?'blue':entry.tier==='mid'?'orange':'red');}else{document.getElementById('unitPrice').value='';document.getElementById('priceHint').textContent='해당 장수 단가 기준 없음';}const mTotal=moldOn?getVal('moldTotal'):0;document.getElementById('moldPerPiece').value=qty?c(Math.round(mTotal/qty)):'';}
-function showResult(){const L=calcLayout();if(!L){alert('치수를 모두 입력해주세요.');return;}const qty=getVal('orderQty');const smallQty=1000;const moldOn=document.getElementById('moldYn').checked;const mTotal=moldOn?getVal('moldTotal'):0;const entry=getPrice(L.best,qty,smallQty);const uP=entry?entry.price:0;const cycles=L.best&&qty?Math.ceil(qty/L.best):0;const moldPer=moldOn&&qty?Math.round(mTotal/qty):0;const finalU=uP+moldPer;const prodT=uP*qty;const grand=prodT+mTotal;const tierLabel=entry?(entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량'):'—';const tierClass=entry?entry.tier:'mid';document.getElementById('finalBox').className='final-box tier-'+tierClass;document.getElementById('tierBadge').className='tier-badge '+tierClass;document.getElementById('tierBadge').textContent=tierLabel;document.getElementById('r_finalUnit').textContent=c(finalU);document.getElementById('r_finalSub').textContent=moldOn?'원/장 (몰드 포함)':'원/장';document.getElementById('r_best').textContent=c(L.best)+'장 ('+(L.bestA?'정방향':'90도 회전')+')';document.getElementById('r_tier').textContent=tierLabel;document.getElementById('r_unit').textContent=c(uP)+'원/장';document.getElementById('r_moldPer').textContent=c(moldPer)+'원/장';document.getElementById('r_qty').textContent=c(qty)+'장';document.getElementById('r_cycles').textContent=c(cycles)+'싸이클';document.getElementById('r_prodTotal').textContent=fmt(prodT);document.getElementById('r_moldCost').textContent=fmt(mTotal);document.getElementById('r_grand').textContent=fmt(grand);document.getElementById('moldPerRow').style.display=moldOn?'':'none';document.getElementById('moldCostRow').style.display=moldOn?'':'none';const err=document.getElementById('errBox'),warn=document.getElementById('warnBox');if(L.best===0){err.style.display='block';err.textContent='현재 치수로는 제품이 몰드에 들어가지 않습니다. 치수를 확인하세요.';warn.style.display='none';}else{err.style.display='none';if(entry&&entry.tier==='low'){warn.style.display='block';warn.textContent='소량 생산 단가 적용 ('+c(qty)+'장). 별도 협의가 필요할 수 있습니다.';}else{warn.style.display='none';}}document.getElementById('resultCard').style.display='block';document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});}
+function calcLayout(){const mW=getVal('mW'),mH=getVal('mH'),pW=getVal('pW'),pH=getVal('pH');const gap=20;if(!mW||!mH||!pW||!pH)return null;const aC=fitCount(mW,pW,gap),aR=fitCount(mH,pH,gap),cA=aC*aR;const bC=fitCount(mW,pH,gap),bR=fitCount(mH,pW,gap),cB=bC*bR;const bestA=cA>=cB;return{cA,cB,bestA,best:Math.max(cA,cB),alt:Math.min(cA,cB),aC,aR,bC,bR};}
+function autoCalc(){
+  const moldOn=document.getElementById('moldYn').checked;
+  document.getElementById('moldSection').style.display=moldOn?'':'none';
+  const L=calcLayout();if(!L)return;
+  const qty=getVal('orderQty');
+  const entry=getPrice(L.best,qty);
+  const mTotal=moldOn?getVal('moldTotal'):0;
+  _cache={L,qty,entry,moldOn,mTotal};
+  document.getElementById('cycleQty').value=L.best?c(L.best):'';
+  document.getElementById('cycleDir').textContent=L.bestA?'정방향 ('+L.aC+'열×'+L.aR+'행)':'90도 회전 ('+L.bC+'열×'+L.bR+'행)';
+  document.getElementById('cycleAlt').value=L.alt?c(L.alt):'';
+  document.getElementById('cycleAltDir').textContent=L.bestA?'90도 회전 ('+L.bC+'열×'+L.bR+'행)':'정방향 ('+L.aC+'열×'+L.aR+'행)';
+  document.getElementById('needCycles').value=L.best&&qty?c(Math.ceil(qty/L.best)):'';
+  if(entry){document.getElementById('unitPrice').value=c(entry.price);const tl=entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량';document.getElementById('priceHint').textContent=L.best+'장 / '+tl+' → '+c(entry.price)+'원/장';document.getElementById('priceHint').className='hint '+(entry.tier==='high'?'blue':entry.tier==='mid'?'orange':'red');}
+  else{document.getElementById('unitPrice').value='';document.getElementById('priceHint').textContent='해당 장수 단가 기준 없음';}
+  document.getElementById('moldPerPiece').value=qty?c(Math.round(mTotal/qty)):'';
+}
+function showResult(){
+  autoCalc();
+  const {L,qty,entry,moldOn,mTotal}=_cache;
+  if(!L){alert('치수를 모두 입력해주세요.');return;}
+  const uP=entry?entry.price:0;
+  const cycles=L.best&&qty?Math.ceil(qty/L.best):0;
+  const moldPer=moldOn&&qty?Math.round(mTotal/qty):0;
+  const finalU=uP+moldPer;
+  const prodT=uP*qty;
+  const grand=prodT+mTotal;
+  const tierLabel=entry?(entry.tier==='high'?'15,000장 이상':entry.tier==='mid'?'15,000장 미만':'소량'):'—';
+  const tierClass=entry?entry.tier:'mid';
+  document.getElementById('finalBox').className='final-box tier-'+tierClass;
+  document.getElementById('tierBadge').className='tier-badge '+tierClass;
+  document.getElementById('tierBadge').textContent=tierLabel;
+  document.getElementById('r_finalUnit').textContent=c(finalU);
+  document.getElementById('r_finalSub').textContent=moldOn?'원/장 (몰드 포함)':'원/장';
+  document.getElementById('r_best').textContent=c(L.best)+'장 ('+(L.bestA?'정방향':'90도 회전')+')';
+  document.getElementById('r_tier').textContent=tierLabel;
+  document.getElementById('r_unit').textContent=c(uP)+'원/장';
+  document.getElementById('r_moldPer').textContent=c(moldPer)+'원/장';
+  document.getElementById('r_qty').textContent=c(qty)+'장';
+  document.getElementById('r_cycles').textContent=c(cycles)+'싸이클';
+  document.getElementById('r_prodTotal').textContent=fmt(prodT);
+  document.getElementById('r_moldCost').textContent=fmt(mTotal);
+  document.getElementById('r_grand').textContent=fmt(grand);
+  document.getElementById('moldPerRow').style.display=moldOn?'':'none';
+  document.getElementById('moldCostRow').style.display=moldOn?'':'none';
+  const err=document.getElementById('errBox'),warn=document.getElementById('warnBox');
+  if(L.best===0){err.style.display='block';err.textContent='현재 치수로는 제품이 몰드에 들어가지 않습니다.';warn.style.display='none';}
+  else{err.style.display='none';if(entry&&entry.tier==='low'){warn.style.display='block';warn.textContent='소량 생산 단가 적용 ('+c(qty)+'장). 별도 협의가 필요할 수 있습니다.';}else{warn.style.display='none';}}
+  document.getElementById('resultCard').style.display='block';
+  document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
 autoCalc();
 </script>
 </body>
