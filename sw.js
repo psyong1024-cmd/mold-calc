@@ -1,3 +1,4 @@
+
 const CACHE = 'mold-calc-v2';
 const FILES = ['./', './index.html', './manifest.json'];
  
